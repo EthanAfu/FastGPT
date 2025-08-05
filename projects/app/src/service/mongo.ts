@@ -13,27 +13,25 @@ export async function initRootUser(retry = 3): Promise<any> {
 
     let rootId = rootUser?._id || '';
 
-    await mongoSessionRun(async (session) => {
-      // init root user
-      if (rootUser) {
-        await rootUser.updateOne({
+    // Skip transaction for single-node MongoDB
+    console.log('Using regular operations (no transaction)');
+
+    // init root user
+    if (rootUser) {
+      await rootUser.updateOne({
+        password: hashStr(psw)
+      });
+    } else {
+      const [{ _id }] = await MongoUser.create([
+        {
+          username: 'root',
           password: hashStr(psw)
-        });
-      } else {
-        const [{ _id }] = await MongoUser.create(
-          [
-            {
-              username: 'root',
-              password: hashStr(psw)
-            }
-          ],
-          { session, ordered: true }
-        );
-        rootId = _id;
-      }
-      // init root team
-      await createDefaultTeam({ userId: rootId, session });
-    });
+        }
+      ]);
+      rootId = _id;
+    }
+    // init root team
+    await createDefaultTeam({ userId: rootId });
 
     console.log(`root user init:`, {
       username: 'root',

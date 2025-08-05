@@ -3,7 +3,7 @@ import { RunCodeDto } from './dto/create-sandbox.dto';
 
 @Injectable()
 export class SandboxService {
-  runJs(params: RunCodeDto) {
+  runJs(_params: RunCodeDto) {
     return {};
   }
 }

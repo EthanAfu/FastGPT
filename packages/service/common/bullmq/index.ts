@@ -47,6 +47,37 @@ export function getQueue<DataType, ReturnType = void>(
   if (queue) {
     return queue as Queue<DataType, ReturnType>;
   }
+
+  // Skip queue creation if Redis is not configured
+  if (!process.env.REDIS_URL) {
+    console.log(`No Redis URL configured, skipping queue creation for ${name}`);
+    // Return a mock queue that does nothing
+    return {
+      add: async () => {
+        console.log(`Mock queue ${name}: job ignored (no Redis configured)`);
+        return {} as any;
+      },
+      getJob: async () => null,
+      getDeduplicationJobId: async () => null,
+      upsertJobScheduler: async () => {
+        console.log(`Mock queue ${name}: scheduler ignored (no Redis configured)`);
+        return {} as any;
+      },
+      getJobScheduler: async () => null,
+      removeJobScheduler: async () => {
+        console.log(`Mock queue ${name}: scheduler removal ignored (no Redis configured)`);
+        return {} as any;
+      },
+      drain: async () => {
+        console.log(`Mock queue ${name}: drain ignored (no Redis configured)`);
+        return {} as any;
+      },
+      getJobSchedulers: async () => [],
+      on: () => {},
+      close: async () => {}
+    } as any;
+  }
+
   const newQueue = new Queue<DataType, ReturnType>(name.toString(), {
     connection: newQueueRedisConnection(),
     ...opts

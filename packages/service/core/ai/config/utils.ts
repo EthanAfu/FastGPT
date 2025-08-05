@@ -16,7 +16,7 @@ import {
   updateFastGPTConfigBuffer
 } from '../../../common/system/config/controller';
 import { delay } from '@fastgpt/global/common/system/utils';
-import { pluginClient } from '../../../thirdProvider/fastgptPlugin';
+import { pluginClient, BASE_URL, TOKEN } from '../../../thirdProvider/fastgptPlugin';
 import { setCron } from '../../../common/system/cron';
 
 export const loadSystemModels = async (init = false) => {
@@ -91,11 +91,20 @@ export const loadSystemModels = async (init = false) => {
     // Get model from db and plugin
     const [dbModels, systemModels] = await Promise.all([
       MongoSystemModel.find({}).lean(),
-      pluginClient.model.list().then((res) => {
-        if (res.status === 200) return res.body;
-        console.error('Get fastGPT plugin model error');
-        return [];
-      })
+      // Skip plugin call if BASE_URL or TOKEN is empty
+      BASE_URL && TOKEN
+        ? pluginClient.model
+            .list()
+            .then((res) => {
+              if (res.status === 200) return res.body;
+              console.error('Get fastGPT plugin model error');
+              return [];
+            })
+            .catch((error) => {
+              console.log('Plugin service unavailable, skipping external models:', error.message);
+              return [];
+            })
+        : Promise.resolve([])
     ]);
 
     // Load system model from local
@@ -169,6 +178,47 @@ export const loadSystemModels = async (init = false) => {
       return providerA.order - providerB.order;
     });
 
+    // Add default models if no models are loaded
+    if (global.systemActiveModelList.length === 0) {
+      console.log('No models loaded, adding default models');
+
+      const defaultModels = [
+        {
+          model: 'qwen3:8b',
+          name: 'Qwen3 8B (Ollama)',
+          type: ModelTypeEnum.llm,
+          provider: 'ollama',
+          isActive: true,
+          isDefault: true,
+          datasetProcess: true,
+          usedInClassify: true,
+          usedInExtractFields: true,
+          usedInToolCall: true,
+          useInEvaluation: true,
+          charsPointsPrice: 0,
+          inputPrice: 0,
+          outputPrice: 0,
+          avatar: '/imgs/model/ollama.svg'
+        },
+        {
+          model: 'nomic-embed-text',
+          name: 'Nomic Embed Text',
+          type: ModelTypeEnum.embedding,
+          provider: 'ollama',
+          isActive: true,
+          isDefault: true,
+          charsPointsPrice: 0,
+          inputPrice: 0,
+          outputPrice: 0,
+          avatar: '/imgs/model/ollama.svg'
+        }
+      ];
+
+      defaultModels.forEach((model) => {
+        pushModel(model as SystemModelItemType);
+      });
+    }
+
     console.log(
       `Load models success, total: ${global.systemModelList.length}, active: ${global.systemActiveModelList.length}`,
       JSON.stringify(
@@ -193,6 +243,11 @@ export const getSystemModelConfig = async (model: string): Promise<SystemModelIt
   const modelData = findModelFromAlldata(model);
   if (!modelData) return Promise.reject('Model is not found');
   if (modelData.isCustom) return Promise.reject('Custom model not data');
+
+  // Skip plugin call if BASE_URL is empty
+  if (!BASE_URL) {
+    return Promise.reject('Plugin service not configured');
+  }
 
   // Read file
   const modelDefaulConfig = await pluginClient.model.list().then((res) => {

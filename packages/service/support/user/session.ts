@@ -62,20 +62,27 @@ const getSession = async (key: string): Promise<SessionType> => {
   const redis = getGlobalRedisConnection();
 
   // 使用 hgetall 获取所有字段
-  const data = await retryFn(() => redis.hgetall(formatKey));
+  const data = (await retryFn(() => redis.hgetall(formatKey))) as Record<string, string>;
 
   if (!data || Object.keys(data).length === 0) {
     return Promise.reject(ERROR_ENUM.unAuthorization);
   }
 
   try {
+    // 确保所有必需字段都存在
+    if (!data.userId || !data.teamId || !data.tmbId || !data.createdAt) {
+      console.log('Session data missing required fields:', data);
+      delSession(formatKey);
+      return Promise.reject(ERROR_ENUM.unAuthorization);
+    }
+
     return {
-      userId: data.userId,
-      teamId: data.teamId,
-      tmbId: data.tmbId,
+      userId: String(data.userId),
+      teamId: String(data.teamId),
+      tmbId: String(data.tmbId),
       isRoot: data.isRoot === '1',
-      createdAt: parseInt(data.createdAt),
-      ip: data.ip
+      createdAt: parseInt(String(data.createdAt)),
+      ip: data.ip || null
     };
   } catch (error) {
     addLog.error('Parse session error:', error);
@@ -87,7 +94,7 @@ export const delUserAllSession = async (userId: string, whiteList?: (string | un
   const formatWhiteList = whiteList?.map((item) => item && getSessionKey(item));
   const redis = getGlobalRedisConnection();
   const keys = (await getAllKeysByPrefix(`${redisPrefix}${String(userId)}`)).filter(
-    (item) => !formatWhiteList?.includes(item)
+    (item: string) => !formatWhiteList?.includes(item)
   );
 
   if (keys.length > 0) {
@@ -112,9 +119,9 @@ const delRedundantSession = async (userId: string) => {
 
   // 获取所有会话的创建时间
   const sessionList = await Promise.all(
-    keys.map(async (key) => {
+    keys.map(async (key: string) => {
       try {
-        const data = await redis.hgetall(key);
+        const data = (await redis.hgetall(key)) as Record<string, string>;
         if (!data || Object.keys(data).length === 0) return null;
 
         return {

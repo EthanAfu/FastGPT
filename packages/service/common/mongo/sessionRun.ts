@@ -21,6 +21,16 @@ export const mongoSessionRun = async <T = unknown>(fn: (session: ClientSession) 
     } else {
       addLog.warn('Un catch mongo session error', { error });
     }
+
+    // If transaction is not supported, try without transaction
+    if (
+      (error as any)?.code === 20 ||
+      (error as any)?.message?.includes('Transaction numbers are only allowed')
+    ) {
+      console.log('Transaction not supported, executing without transaction');
+      return await fn(session);
+    }
+
     return Promise.reject(error);
   } finally {
     await session.endSession();

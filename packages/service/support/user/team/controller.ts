@@ -91,7 +91,7 @@ export async function createDefaultTeam({
   userId: string;
   teamName?: string;
   avatar?: string;
-  session: ClientSession;
+  session?: ClientSession;
 }) {
   // auth default team
   const tmb = await MongoTeamMember.findOne({
@@ -109,7 +109,7 @@ export async function createDefaultTeam({
           createTime: new Date()
         }
       ],
-      { session }
+      session ? { session } : {}
     );
     // create team member
     const [tmb] = await MongoTeamMember.create(
@@ -123,7 +123,7 @@ export async function createDefaultTeam({
           createTime: new Date()
         }
       ],
-      { session }
+      session ? { session } : {}
     );
     // create default group
     await MongoMemberGroupModel.create(
@@ -134,7 +134,7 @@ export async function createDefaultTeam({
           avatar
         }
       ],
-      { session }
+      session ? { session } : {}
     );
     await createRootOrg({ teamId: tmb.teamId, session });
     console.log('create default team, group and root org', userId);

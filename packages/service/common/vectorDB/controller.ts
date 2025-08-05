@@ -22,15 +22,35 @@ const getVectorObj = () => {
   if (OCEANBASE_ADDRESS) return new ObVectorCtrl();
   if (MILVUS_ADDRESS) return new MilvusCtrl();
 
-  return new PgVectorCtrl();
+  // Return empty vector controller if no vector DB is configured
+  return {
+    init: async () => {
+      console.log('No vector database configured, skipping initialization');
+    },
+    insert: async () => {
+      throw new Error('No vector database configured');
+    },
+    delete: async () => {
+      throw new Error('No vector database configured');
+    },
+    embRecall: async () => {
+      throw new Error('No vector database configured');
+    },
+    getVectorDataByTime: async () => {
+      throw new Error('No vector database configured');
+    },
+    getVectorCountByTeamId: async () => 0,
+    getVectorCountByDatasetId: async () => 0,
+    getVectorCountByCollectionId: async () => 0
+  };
 };
 
-const getChcheKey = (teamId: string) => `${CacheKeyEnum.team_vector_count}:${teamId}`;
-const onDelCache = throttle((teamId: string) => delRedisCache(getChcheKey(teamId)), 30000, {
+const getCacheKey = (teamId: string) => `${CacheKeyEnum.team_vector_count}:${teamId}`;
+const onDelCache = throttle((teamId: string) => delRedisCache(getCacheKey(teamId)), 30000, {
   leading: true,
   trailing: true
 });
-const onIncrCache = (teamId: string) => incrValueToCache(getChcheKey(teamId), 1);
+const onIncrCache = (teamId: string) => incrValueToCache(getCacheKey(teamId), 1);
 
 const Vector = getVectorObj();
 
@@ -39,7 +59,7 @@ export const recallFromVectorStore = Vector.embRecall;
 export const getVectorDataByTime = Vector.getVectorDataByTime;
 
 export const getVectorCountByTeamId = async (teamId: string) => {
-  const key = getChcheKey(teamId);
+  const key = getCacheKey(teamId);
 
   const countStr = await getRedisCache(key);
   if (countStr) {

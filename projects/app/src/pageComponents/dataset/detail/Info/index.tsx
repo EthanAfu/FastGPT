@@ -171,14 +171,14 @@ const Info = ({ datasetId }: { datasetId: string }) => {
             </FormLabel>
             <MyTooltip label={t('dataset:vector_model_max_tokens_tip')}>
               <Box fontSize={'mini'}>
-                {t('dataset:chunk_max_tokens')}: {vectorModel.maxToken}
+                {t('dataset:chunk_max_tokens')}: {vectorModel?.maxToken || '-'}
               </Box>
             </MyTooltip>
           </Flex>
           <Box pt={2}>
             <AIModelSelector
               w={'100%'}
-              value={vectorModel.model}
+              value={vectorModel?.model || ''}
               fontSize={'mini'}
               disableTip={
                 isTraining
@@ -210,7 +210,7 @@ const Info = ({ datasetId }: { datasetId: string }) => {
           <Box pt={2}>
             <AIModelSelector
               w={'100%'}
-              value={agentModel.model}
+              value={agentModel?.model || ''}
               list={datasetModelList.map((item) => ({
                 label: item.name,
                 value: item.model

@@ -139,7 +139,7 @@ export const DatasetSelectModal = ({
                         if (item.type === DatasetTypeEnum.folder) {
                           setParentId(item._id);
                         } else {
-                          if (activeVectorModel && activeVectorModel !== item.vectorModel.model) {
+                          if (activeVectorModel && activeVectorModel !== item.vectorModel?.model) {
                             return toast({
                               status: 'warning',
                               title: t('common:dataset.Select Dataset Tips')
@@ -179,7 +179,7 @@ export const DatasetSelectModal = ({
                         alignItems={'center'}
                         fontSize={'sm'}
                         color={
-                          activeVectorModel === item.vectorModel.model
+                          activeVectorModel === item.vectorModel?.model
                             ? 'primary.600'
                             : 'myGray.500'
                         }
@@ -189,7 +189,7 @@ export const DatasetSelectModal = ({
                         ) : (
                           <>
                             <MyIcon mr={1} name="kbTest" w={'12px'} />
-                            <Box>{item.vectorModel.name}</Box>
+                            <Box>{item.vectorModel?.name}</Box>
                           </>
                         )}
                       </Flex>

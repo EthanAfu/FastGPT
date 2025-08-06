@@ -11,6 +11,29 @@
   },
   "llmModels": [
     {
+      "provider": "Ollama",
+      "model": "qwen3:8b",
+      "name": "Qwen3-8B",
+      "maxContext": 32768,
+      "maxResponse": 8000,
+      "quoteMaxToken": 30000,
+      "maxTemperature": 1.0,
+      "charsPointsPrice": 0,
+      "censor": false,
+      "vision": false,
+      "datasetProcess": true,
+      "usedInClassify": true,
+      "usedInExtractFields": true,
+      "usedInToolCall": true,
+      "toolChoice": false,
+      "functionCall": false,
+      "defaultSystemChatPrompt": "",
+      "defaultConfig": {},
+      "fieldMap": {},
+      "isActive": true,
+      "isDefault": true
+    },
+    {
       "provider": "OpenAI", // 模型提供商，主要用于分类展示，目前已经内置提供商包括：https://github.com/labring/FastGPT/blob/main/packages/global/core/ai/provider.ts, 可 pr 提供新的提供商，或直接填写 Other
       "model": "gpt-4o-mini", // 模型名(对应OneAPI中渠道的模型名)
       "name": "gpt-4o-mini", // 模型别名
@@ -103,13 +126,43 @@
   ],
   "vectorModels": [
     {
+      "provider": "Ollama",
+      "model": "mxbai-embed-large",
+      "name": "mxbai-embed-large",
+      "charsPointsPrice": 0,
+      "defaultToken": 512,
+      "maxToken": 8192,
+      "weight": 200,
+      "isActive": true,
+      "isDefault": true
+    },
+    {
+      "provider": "Ollama",
+      "model": "text-embedding-ada-002",
+      "name": "Embedding-2", 
+      "charsPointsPrice": 0,
+      "defaultToken": 700,
+      "maxToken": 8192,
+      "weight": 150,
+      "isActive": true
+    },
+    {
+      "provider": "OpenAI",
+      "model": "mxbai-embed-large",
+      "name": "mxbai-embed-large-openai",
+      "charsPointsPrice": 0,
+      "defaultToken": 512,
+      "maxToken": 8192,
+      "weight": 100
+    },
+    {
       "provider": "OpenAI",
       "model": "text-embedding-3-small",
       "name": "text-embedding-3-small",
       "charsPointsPrice": 0,
       "defaultToken": 512,
       "maxToken": 3000,
-      "weight": 100
+      "weight": 80
     },
     {
       "provider": "OpenAI",
@@ -118,22 +171,10 @@
       "charsPointsPrice": 0,
       "defaultToken": 512,
       "maxToken": 3000,
-      "weight": 100,
+      "weight": 70,
       "defaultConfig": {
         "dimensions": 1024
       }
-    },
-    {
-      "provider": "OpenAI",
-      "model": "text-embedding-ada-002", // 模型名（与OneAPI对应）
-      "name": "Embedding-2", // 模型展示名
-      "charsPointsPrice": 0, // n积分/1k token
-      "defaultToken": 700, // 默认文本分割时候的 token
-      "maxToken": 3000, // 最大 token
-      "weight": 100, // 优先训练权重
-      "defaultConfig": {}, // 自定义额外参数。例如，如果希望使用 embedding3-large 的话，可以传入 dimensions:1024，来返回1024维度的向量。（目前必须小于1536维度）
-      "dbConfig": {}, // 存储时的额外参数（非对称向量模型时候需要用到）
-      "queryConfig": {} // 参训时的额外参数
     }
   ],
   "reRankModels": [],

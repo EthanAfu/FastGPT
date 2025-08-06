@@ -4,6 +4,39 @@ import { Box, type BoxProps } from '@chakra-ui/react';
 import MyIcon from '../../Icon';
 import { getWebReqUrl } from '../../../../common/system/utils';
 import usePythonCompletion from './usePythonCompletion';
+
+// Monaco Editor compatibility fix for getModifierState
+if (typeof window !== 'undefined') {
+  const originalAddEventListener = HTMLElement.prototype.addEventListener;
+  HTMLElement.prototype.addEventListener = function (type, listener, options) {
+    if (type === 'keydown' || type === 'keyup' || type === 'mousedown' || type === 'mouseup') {
+      const wrappedListener = function (event) {
+        // Add getModifierState method if it doesn't exist
+        if (event && typeof event.getModifierState !== 'function') {
+          event.getModifierState = function (key) {
+            switch (key) {
+              case 'Alt':
+              case 'AltGraph':
+                return event.altKey;
+              case 'Control':
+                return event.ctrlKey;
+              case 'Meta':
+                return event.metaKey;
+              case 'Shift':
+                return event.shiftKey;
+              default:
+                return false;
+            }
+          };
+        }
+        return listener.call(this, event);
+      };
+      return originalAddEventListener.call(this, type, wrappedListener, options);
+    }
+    return originalAddEventListener.call(this, type, listener, options);
+  };
+}
+
 loader.config({
   paths: { vs: getWebReqUrl('/js/monaco-editor.0.45.0/vs') }
 });

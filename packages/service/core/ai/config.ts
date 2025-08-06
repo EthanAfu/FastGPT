@@ -23,10 +23,14 @@ export const getAIApi = (props?: { userKey?: OpenaiAccountType; timeout?: number
 
   const baseUrl = userKey?.baseUrl || global?.systemEnv?.oneapiUrl || openaiBaseUrl;
   const apiKey = userKey?.key || global?.systemEnv?.chatApiKey || openaiBaseKey;
+
+  // 检查是否为本地 Ollama 连接，如果是则不使用代理
+  const isLocalOllama = baseUrl?.includes('localhost') || baseUrl?.includes('127.0.0.1');
+
   return new OpenAI({
     baseURL: baseUrl,
     apiKey,
-    httpAgent: global.httpsAgent,
+    httpAgent: isLocalOllama ? undefined : global.httpsAgent,
     timeout,
     maxRetries: 2
   });

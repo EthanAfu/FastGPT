@@ -35,17 +35,23 @@ async function handler(
 
   if (!modelData) return Promise.reject('Model not found');
 
-  if (channelId) {
+  // Check if AI Proxy is configured
+  const aiProxyConfigured = process.env.AIPROXY_API_ENDPOINT && process.env.AIPROXY_API_TOKEN;
+
+  // Only use AI Proxy channel if it's configured and channelId is provided
+  const useAiProxy = channelId && aiProxyConfigured;
+
+  if (useAiProxy) {
     delete modelData.requestUrl;
     delete modelData.requestAuth;
   }
 
-  const headers: Record<string, string> = channelId
+  const headers: Record<string, string> = useAiProxy
     ? {
         'Aiproxy-Channel': String(channelId)
       }
     : {};
-  addLog.debug(`Test model`, modelData);
+  addLog.debug(`Test model`, { model: modelData.model, useAiProxy, channelId });
 
   if (modelData.type === 'llm') {
     return testLLMModel(modelData, headers);

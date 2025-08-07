@@ -254,7 +254,14 @@ const ModelTable = ({ Tab }: { Tab: React.ReactNode }) => {
 
   const { runAsync: onTestModel, loading: testingModel } = useRequest2(getTestModel, {
     manual: true,
-    successToast: t('common:Success')
+    successToast: t('common:Success'),
+    errorToast: (error) => {
+      // 显示详细的错误信息
+      if (typeof error === 'string') {
+        return error;
+      }
+      return error?.message || t('common:Error');
+    }
   });
   const { runAsync: updateModel, loading: updatingModel } = useRequest2(putSystemModel, {
     onSuccess: refreshModels

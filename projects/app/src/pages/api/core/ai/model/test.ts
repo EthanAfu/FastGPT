@@ -75,32 +75,46 @@ async function handler(
 export default NextAPI(handler);
 
 const testLLMModel = async (model: LLMModelItemType, headers: Record<string, string>) => {
-  const requestBody = llmCompletionsBodyFormat(
-    {
+  try {
+    const requestBody = llmCompletionsBodyFormat(
+      {
+        model: model.model,
+        messages: [{ role: 'user', content: 'hi' }],
+        stream: true
+      },
+      model
+    );
+
+    addLog.debug(`Testing LLM model`, {
       model: model.model,
-      messages: [{ role: 'user', content: 'hi' }],
-      stream: true
-    },
-    model
-  );
+      requestUrl: model.requestUrl,
+      hasAuth: !!model.requestAuth
+    });
 
-  const { response } = await createChatCompletion({
-    modelData: model,
-    body: requestBody,
-    options: {
-      headers: {
-        Accept: 'application/json, text/plain, */*',
-        ...headers
+    const { response } = await createChatCompletion({
+      modelData: model,
+      body: requestBody,
+      options: {
+        headers: {
+          Accept: 'application/json, text/plain, */*',
+          ...headers
+        }
       }
+    });
+    const { text: answer } = await formatLLMResponse(response);
+
+    if (answer) {
+      return answer;
     }
-  });
-  const { text: answer } = await formatLLMResponse(response);
 
-  if (answer) {
-    return answer;
+    return Promise.reject('Model response empty');
+  } catch (error) {
+    addLog.error(`Test LLM model failed`, {
+      model: model.model,
+      error
+    });
+    throw error;
   }
-
-  return Promise.reject('Model response empty');
 };
 
 const testEmbeddingModel = async (
@@ -115,9 +129,18 @@ const testEmbeddingModel = async (
 };
 
 const testTTSModel = async (model: TTSModelType, headers: Record<string, string>) => {
+  const customUserKey = model.requestUrl
+    ? {
+        baseUrl: model.requestUrl,
+        key: model.requestAuth || 'default'
+      }
+    : undefined;
+
   const ai = getAIApi({
+    userKey: customUserKey,
     timeout: 10000
   });
+
   await ai.audio.speech.create(
     {
       model: model.model,
@@ -126,15 +149,7 @@ const testTTSModel = async (model: TTSModelType, headers: Record<string, string>
       response_format: 'mp3',
       speed: 1
     },
-    model.requestUrl
-      ? {
-          path: model.requestUrl,
-          headers: {
-            ...(model.requestAuth ? { Authorization: `Bearer ${model.requestAuth}` } : {}),
-            ...headers
-          }
-        }
-      : { headers }
+    { headers }
   );
 };
 

@@ -21,7 +21,23 @@ export async function getVectorsByText({ model, input, type, headers }: GetVecto
   }
 
   try {
-    const ai = getAIApi();
+    // 对于自定义模型，传递正确的配置给 getAIApi
+    let userKey = undefined;
+    if (model.requestUrl) {
+      let baseUrl = model.requestUrl;
+      // 将 localhost 替换为 127.0.0.1 以强制使用 IPv4
+      baseUrl = baseUrl.replace(/localhost/g, '127.0.0.1');
+      // 确保 Ollama 的 URL 以 /v1 结尾（OpenAI 兼容路径）
+      if (baseUrl.includes('127.0.0.1:11434') && !baseUrl.includes('/v1')) {
+        baseUrl = baseUrl.replace(/\/$/, '') + '/v1';
+      }
+      userKey = {
+        baseUrl,
+        key: model.requestAuth || 'ollama'
+      };
+    }
+
+    const ai = getAIApi({ userKey });
 
     // input text to vector
     const result = await ai.embeddings
@@ -33,15 +49,7 @@ export async function getVectorsByText({ model, input, type, headers }: GetVecto
           model: model.model,
           input: [input]
         },
-        model.requestUrl
-          ? {
-              path: model.requestUrl,
-              headers: {
-                ...(model.requestAuth ? { Authorization: `Bearer ${model.requestAuth}` } : {}),
-                ...headers
-              }
-            }
-          : { headers }
+        { headers }
       )
       .then(async (res) => {
         if (!res.data) {

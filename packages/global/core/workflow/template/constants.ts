@@ -36,6 +36,7 @@ import { CodeNode } from './system/sandbox';
 import { TextEditorNode } from './system/textEditor';
 import { ToolParamsNode } from './system/toolParams';
 import { VariableUpdateNode } from './system/variableUpdate';
+import { WindDataNode, WindAnalysisNode } from './system/windData';
 
 const systemNodes: FlowNodeTemplateType[] = [
   AiChatModule,
@@ -55,7 +56,10 @@ const systemNodes: FlowNodeTemplateType[] = [
   IfElseNode,
   VariableUpdateNode,
   CodeNode,
-  LoopNode
+  LoopNode,
+  // Wind 金融数据节点
+  WindDataNode,
+  WindAnalysisNode
 ];
 /* app flow module templates */
 export const appSystemModuleTemplates: FlowNodeTemplateType[] = [

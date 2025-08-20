@@ -60,7 +60,10 @@ const nodeTypes: Record<FlowNodeTypeEnum, any> = {
   [FlowNodeTypeEnum.loopStart]: dynamic(() => import('./nodes/Loop/NodeLoopStart')),
   [FlowNodeTypeEnum.loopEnd]: dynamic(() => import('./nodes/Loop/NodeLoopEnd')),
   [FlowNodeTypeEnum.formInput]: dynamic(() => import('./nodes/NodeFormInput')),
-  [FlowNodeTypeEnum.comment]: dynamic(() => import('./nodes/NodeComment'))
+  [FlowNodeTypeEnum.comment]: dynamic(() => import('./nodes/NodeComment')),
+  // Wind 金融数据节点
+  [FlowNodeTypeEnum.windData]: NodeSimple,
+  [FlowNodeTypeEnum.windAnalysis]: NodeSimple
 };
 const edgeTypes = {
   [EDGE_TYPE]: ButtonEdge

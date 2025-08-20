@@ -493,13 +493,27 @@ const cleanSystemPluginCache = () => {
 };
 
 export const refetchSystemPlugins = () => {
-  const changeStream = MongoSystemPlugin.watch();
+  try {
+    const changeStream = MongoSystemPlugin.watch();
 
-  changeStream.on('change', () => {
-    try {
-      cleanSystemPluginCache();
-    } catch (error) {}
-  });
+    changeStream.on('change', () => {
+      try {
+        cleanSystemPluginCache();
+      } catch (error) {}
+    });
+
+    changeStream.on('error', (error) => {
+      console.warn('MongoDB change stream error (system plugins):', error.message);
+    });
+  } catch (error: any) {
+    if (error?.code === 40573) {
+      console.warn(
+        'MongoDB Change Streams not supported for system plugins: MongoDB must be configured as a replica set'
+      );
+    } else {
+      console.error('Failed to setup system plugins watch:', error);
+    }
+  }
 };
 
 export const getSystemTools = async (): Promise<SystemPluginTemplateItemType[]> => {

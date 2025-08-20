@@ -266,19 +266,33 @@ export const getSystemModelConfig = async (model: string): Promise<SystemModelIt
 };
 
 export const watchSystemModelUpdate = () => {
-  const changeStream = MongoSystemModel.watch();
+  try {
+    const changeStream = MongoSystemModel.watch();
 
-  changeStream.on(
-    'change',
-    debounce(async () => {
-      try {
-        // Main node will reload twice
-        await loadSystemModels(true);
-        // All node reaload buffer
-        await reloadFastGPTConfigBuffer();
-      } catch (error) {}
-    }, 500)
-  );
+    changeStream.on(
+      'change',
+      debounce(async () => {
+        try {
+          // Main node will reload twice
+          await loadSystemModels(true);
+          // All node reaload buffer
+          await reloadFastGPTConfigBuffer();
+        } catch (error) {}
+      }, 500)
+    );
+
+    changeStream.on('error', (error) => {
+      console.warn('MongoDB change stream error (system model):', error.message);
+    });
+  } catch (error: any) {
+    if (error?.code === 40573) {
+      console.warn(
+        'MongoDB Change Streams not supported for system models: MongoDB must be configured as a replica set'
+      );
+    } else {
+      console.error('Failed to setup system model watch:', error);
+    }
+  }
 };
 
 // 更新完模型后，需要重载缓存

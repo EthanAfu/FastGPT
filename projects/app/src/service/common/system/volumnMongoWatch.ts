@@ -17,35 +17,61 @@ export const startMongoWatch = async () => {
 };
 
 const reloadConfigWatch = () => {
-  const changeStream = MongoSystemConfigs.watch();
+  try {
+    const changeStream = MongoSystemConfigs.watch();
 
-  changeStream.on('change', async (change) => {
-    try {
-      if (
-        change.operationType === 'update' ||
-        (change.operationType === 'insert' &&
-          [SystemConfigsTypeEnum.fastgptPro, SystemConfigsTypeEnum.license].includes(
-            change.fullDocument.type
-          ))
-      ) {
-        await initSystemConfig();
-        console.log('refresh system config');
-      }
-    } catch (error) {}
-  });
+    changeStream.on('change', async (change) => {
+      try {
+        if (
+          change.operationType === 'update' ||
+          (change.operationType === 'insert' &&
+            [SystemConfigsTypeEnum.fastgptPro, SystemConfigsTypeEnum.license].includes(
+              change.fullDocument.type
+            ))
+        ) {
+          await initSystemConfig();
+          console.log('refresh system config');
+        }
+      } catch (error) {}
+    });
+
+    changeStream.on('error', (error) => {
+      console.warn('MongoDB change stream error (system config):', error.message);
+    });
+  } catch (error: any) {
+    if (error?.code === 40573) {
+      console.warn(
+        'MongoDB Change Streams not supported: MongoDB must be configured as a replica set'
+      );
+    } else {
+      console.error('Failed to setup system config watch:', error);
+    }
+  }
 };
 
 const refetchAppTemplates = () => {
-  const changeStream = MongoAppTemplate.watch();
+  try {
+    const changeStream = MongoAppTemplate.watch();
 
-  changeStream.on(
-    'change',
-    debounce(async (change) => {
-      setTimeout(() => {
-        try {
-          getAppTemplatesAndLoadThem(true);
-        } catch (error) {}
-      }, 5000);
-    }, 500)
-  );
+    changeStream.on(
+      'change',
+      debounce(async (change) => {
+        setTimeout(() => {
+          try {
+            getAppTemplatesAndLoadThem(true);
+          } catch (error) {}
+        }, 5000);
+      }, 500)
+    );
+
+    changeStream.on('error', (error) => {
+      console.warn('MongoDB change stream error (app templates):', error.message);
+    });
+  } catch (error: any) {
+    if (error?.code === 40573) {
+      console.warn('MongoDB Change Streams not supported for app templates');
+    } else {
+      console.error('Failed to setup app templates watch:', error);
+    }
+  }
 };

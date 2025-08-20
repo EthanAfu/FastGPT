@@ -73,6 +73,7 @@ import { dispatchIfElse } from './tools/runIfElse';
 import { dispatchLafRequest } from './tools/runLaf';
 import { dispatchUpdateVariable } from './tools/runUpdateVar';
 import { dispatchTextEditor } from './tools/textEditor';
+import { dispatchWindData, dispatchWindAnalysis } from './tools/windData';
 import type { DispatchFlowResponse } from './type';
 import { removeSystemVariable, rewriteRuntimeWorkFlow } from './utils';
 import { getHandleId } from '@fastgpt/global/core/workflow/utils';
@@ -107,6 +108,10 @@ const callbackMap: Record<FlowNodeTypeEnum, Function> = {
   [FlowNodeTypeEnum.loopEnd]: dispatchLoopEnd,
   [FlowNodeTypeEnum.formInput]: dispatchFormInput,
   [FlowNodeTypeEnum.tool]: dispatchRunTool,
+
+  // Wind API nodes
+  [FlowNodeTypeEnum.windData]: dispatchWindData,
+  [FlowNodeTypeEnum.windAnalysis]: dispatchWindAnalysis,
 
   // none
   [FlowNodeTypeEnum.systemConfig]: dispatchSystemConfig,

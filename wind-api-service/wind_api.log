@@ -1,0 +1,24 @@
+2025-08-08 11:05:52,861 - __main__ - INFO - WindPy 导入成功
+25.1.8.60033
+[34m[1m2025-08-08 11:05:56.089 [Sys] INFO  Using UTF8 Encodinglogger id=0 key=Main name=MainLog path=/Users/fuxinjie/.Wind/WFT/log/TBAPI2log/ level=2 display=1 
+[0m[34m[1m2025-08-08 11:05:56.089 [TBAPI2] INFO  (VConnManager) VConnManager not  use_test_mode! (vconn_manager.cpp):22 
+[0mWind.Cosmos.Base V1.8 compiled time is Dec 18 2024, BuildType:Release, CPUArch:X64, GCC Version:Apple LLVM 13.0.0 (clang-1300.0.29.30)
+2025-08-08 11:06:00,600 - __main__ - INFO - Wind API 连接状态: True
+2025-08-08 11:06:00,600 - __main__ - INFO - Wind API 服务启动在 0.0.0.0:8080
+Welcome to use Wind Quant API for Python (WindPy)!
+
+COPYRIGHT (C) 2021 WIND INFORMATION CO., LTD. ALL RIGHTS RESERVED.
+IN NO CIRCUMSTANCE SHALL WIND BE RESPONSIBLE FOR ANY DAMAGES OR LOSSES CAUSED BY USING WIND QUANT API FOR Python.
+ * Serving Flask app 'wind_api_server'
+ * Debug mode: off
+2025-08-08 11:06:00,645 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8080
+ * Running on http://192.168.3.236:8080
+2025-08-08 11:06:00,645 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-08-08 11:07:16,624 - __main__ - INFO - 获取数据请求: codes=000001.SZ, fields=sec_name,close, start=, end=
+2025-08-08 11:07:16,902 - __main__ - INFO - Wind API 响应: errorCode=0
+2025-08-08 11:07:16,902 - werkzeug - INFO - 127.0.0.1 - - [08/Aug/2025 11:07:16] "POST /api/data HTTP/1.1" 200 -
+2025-08-08 15:11:57,053 - __main__ - INFO - 获取数据请求: codes=600519.SH, fields=sec_name,close,pe_ttm, start=, end=
+2025-08-08 15:11:57,673 - __main__ - INFO - Wind API 响应: errorCode=0
+2025-08-08 15:11:57,673 - werkzeug - INFO - 127.0.0.1 - - [08/Aug/2025 15:11:57] "POST /api/data HTTP/1.1" 200 -

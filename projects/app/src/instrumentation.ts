@@ -63,6 +63,14 @@ export async function register() {
       startCron();
       startTrainingQueue(true);
 
+      // 初始化 Wind API 服务
+      try {
+        const { initWind } = await import('@fastgpt/service/core/wind/config');
+        initWind();
+      } catch (error) {
+        console.warn('Wind API 初始化失败:', error);
+      }
+
       console.log('Init system success');
     }
   } catch (error) {

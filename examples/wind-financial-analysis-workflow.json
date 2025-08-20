@@ -1,0 +1,259 @@
+{
+  "nodes": [
+    {
+      "nodeId": "workflowStartNodeId",
+      "name": "工作流开始",
+      "intro": "",
+      "avatar": "core/workflow/template/workflowStart",
+      "flowNodeType": "workflowStart",
+      "position": { "x": 250, "y": 300 },
+      "version": "481",
+      "inputs": [
+        {
+          "key": "userChatInput",
+          "renderTypeList": ["reference", "textarea"],
+          "valueType": "string",
+          "value": "",
+          "label": "用户问题输入",
+          "required": true,
+          "toolDescription": "用户输入的关于股票、债券、基金等金融问题"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "userChatInput",
+          "key": "userChatInput",
+          "label": "core.module.input.label.user question",
+          "type": "static",
+          "valueType": "string"
+        }
+      ]
+    },
+    {
+      "nodeId": "windDataNodeId", 
+      "name": "Wind数据获取",
+      "intro": "通过Wind API获取股票、债券、基金等金融数据",
+      "avatar": "core/workflow/template/windData",
+      "flowNodeType": "windData",
+      "position": { "x": 600, "y": 300 },
+      "inputs": [
+        {
+          "key": "windDataType",
+          "renderTypeList": ["select"],
+          "valueType": "string",
+          "value": "stock",
+          "label": "数据类型",
+          "list": [
+            { "label": "股票数据", "value": "stock" },
+            { "label": "债券数据", "value": "bond" },
+            { "label": "基金数据", "value": "fund" }
+          ]
+        },
+        {
+          "key": "windStockCode",
+          "renderTypeList": ["reference", "input"],
+          "valueType": "string", 
+          "value": "",
+          "label": "证券代码",
+          "description": "从用户问题中自动提取，或手动输入"
+        },
+        {
+          "key": "windIndicator",
+          "renderTypeList": ["textarea"],
+          "valueType": "string",
+          "value": "close,volume,pe_ttm,pb_lf,mkt_cap_ard",
+          "label": "指标字段",
+          "description": "默认获取基础指标，可根据问题类型自动调整"
+        },
+        {
+          "key": "windStartDate",
+          "renderTypeList": ["input"],
+          "valueType": "string",
+          "value": "2024-01-01",
+          "label": "开始日期"
+        },
+        {
+          "key": "windEndDate", 
+          "renderTypeList": ["input"],
+          "valueType": "string",
+          "value": "",
+          "label": "结束日期",
+          "description": "空则取最新数据"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "windRawData",
+          "key": "windRawData",
+          "label": "原始数据",
+          "type": "static",
+          "valueType": "object"
+        },
+        {
+          "id": "windFormattedData", 
+          "key": "windFormattedData",
+          "label": "格式化数据",
+          "type": "static",
+          "valueType": "string"
+        },
+        {
+          "id": "windDataSummary",
+          "key": "windDataSummary", 
+          "label": "数据摘要",
+          "type": "static",
+          "valueType": "object"
+        }
+      ]
+    },
+    {
+      "nodeId": "windAnalysisNodeId",
+      "name": "Wind智能分析",
+      "intro": "结合大模型对Wind金融数据进行智能分析和解读",
+      "avatar": "core/workflow/template/windAnalysis",
+      "flowNodeType": "windAnalysis", 
+      "position": { "x": 950, "y": 300 },
+      "inputs": [
+        {
+          "key": "windData",
+          "renderTypeList": ["reference"],
+          "valueType": "object",
+          "value": ["windDataNodeId", "windDataSummary"],
+          "label": "Wind数据",
+          "required": true
+        },
+        {
+          "key": "analysisType",
+          "renderTypeList": ["select"],
+          "valueType": "string",
+          "value": "comprehensive",
+          "label": "分析类型",
+          "list": [
+            { "label": "综合分析", "value": "comprehensive" },
+            { "label": "技术分析", "value": "technical" },
+            { "label": "基本面分析", "value": "fundamental" },
+            { "label": "投资建议", "value": "recommendation" }
+          ]
+        },
+        {
+          "key": "model",
+          "renderTypeList": ["selectLLMModel"],
+          "valueType": "string",
+          "value": "qwen3:8b",
+          "label": "AI模型"
+        },
+        {
+          "key": "systemPrompt",
+          "renderTypeList": ["textarea"],
+          "valueType": "string",
+          "value": "你是一名专业的金融分析师，拥有丰富的股票、债券、基金分析经验。\n\n请基于用户提供的Wind金融数据，进行专业的分析和解读：\n\n1. **数据解读**: 分析关键指标的含义和数值表现\n2. **趋势分析**: 识别数据中的趋势和变化模式\n3. **对比分析**: 与同行业或历史数据进行对比  \n4. **风险评估**: 识别潜在的投资风险因素\n5. **投资建议**: 基于分析给出合理的投资建议\n\n请用专业但易懂的语言进行分析，并给出具体的数据支撑。",
+          "label": "系统提示词"
+        },
+        {
+          "key": "customPrompt",
+          "renderTypeList": ["reference"],
+          "valueType": "string", 
+          "value": ["workflowStartNodeId", "userChatInput"],
+          "label": "用户问题",
+          "description": "用户的具体分析需求"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "analysisResult",
+          "key": "analysisResult",
+          "label": "分析结果", 
+          "type": "static",
+          "valueType": "string"
+        },
+        {
+          "id": "riskLevel",
+          "key": "riskLevel",
+          "label": "风险等级",
+          "type": "static", 
+          "valueType": "string"
+        },
+        {
+          "id": "recommendation",
+          "key": "recommendation",
+          "label": "投资建议",
+          "type": "static",
+          "valueType": "string"
+        }
+      ]
+    },
+    {
+      "nodeId": "answerNodeId",
+      "name": "指定回复",
+      "intro": "将Wind分析结果整合后回复给用户",
+      "avatar": "core/workflow/template/reply",
+      "flowNodeType": "answerNode",
+      "position": { "x": 1300, "y": 300 },
+      "inputs": [
+        {
+          "key": "text",
+          "renderTypeList": ["textarea", "reference"],
+          "valueType": "string",
+          "value": "# {{analysisType}}分析报告\n\n## 数据概览\n{{windFormattedData}}\n\n## 专业分析\n{{analysisResult}}\n\n## 风险等级\n{{riskLevel}}\n\n## 投资建议\n{{recommendation}}\n\n---\n*数据来源：Wind金融终端*\n*分析时间：{{currentTime}}*",
+          "label": "回复内容",
+          "description": "整合Wind数据和AI分析结果"
+        }
+      ],
+      "outputs": []
+    }
+  ],
+  "edges": [
+    {
+      "source": "workflowStartNodeId",
+      "target": "windDataNodeId",
+      "sourceHandle": "userChatInput", 
+      "targetHandle": "windStockCode"
+    },
+    {
+      "source": "windDataNodeId",
+      "target": "windAnalysisNodeId",
+      "sourceHandle": "windDataSummary",
+      "targetHandle": "windData"
+    },
+    {
+      "source": "windDataNodeId",
+      "target": "answerNodeId", 
+      "sourceHandle": "windFormattedData",
+      "targetHandle": "windFormattedData"
+    },
+    {
+      "source": "windAnalysisNodeId",
+      "target": "answerNodeId",
+      "sourceHandle": "analysisResult",
+      "targetHandle": "analysisResult"
+    },
+    {
+      "source": "windAnalysisNodeId",
+      "target": "answerNodeId",
+      "sourceHandle": "riskLevel", 
+      "targetHandle": "riskLevel"
+    },
+    {
+      "source": "windAnalysisNodeId",
+      "target": "answerNodeId",
+      "sourceHandle": "recommendation",
+      "targetHandle": "recommendation"
+    }
+  ],
+  "chatConfig": {
+    "welcomeText": "欢迎使用Wind金融分析助手！\n\n我可以帮您分析股票、债券、基金等金融产品，请输入您要分析的证券代码或相关问题：\n\n例如：\n- 分析贵州茅台的投资价值\n- 600519.SH的基本面如何？\n- 比较五粮液和茅台的财务指标\n- 分析新能源板块的投资机会",
+    "variables": [],
+    "questionGuide": true,
+    "tts": {
+      "type": "none"
+    },
+    "whisper": {
+      "open": false,
+      "autoSend": false,
+      "autoTTSResponse": false
+    },
+    "scheduleTrigger": null,
+    "chatInputGuide": {
+      "open": false
+    }
+  }
+}

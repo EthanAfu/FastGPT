@@ -265,7 +265,15 @@ export enum NodeInputKeyEnum {
 
   // Tool
   toolData = 'system_toolData',
-  toolSetData = 'system_toolSetData'
+  toolSetData = 'system_toolSetData',
+
+  // Wind API
+  windDataType = 'windDataType',
+  windStockCode = 'windStockCode',
+  windIndicator = 'windIndicator',
+  windStartDate = 'windStartDate',
+  windEndDate = 'windEndDate',
+  windFrequency = 'windFrequency'
 }
 
 export enum NodeOutputKeyEnum {
@@ -323,6 +331,11 @@ export enum NodeOutputKeyEnum {
 
   // File
   fileTitle = 'fileTitle',
+
+  // Wind API
+  windRawData = 'windRawData',
+  windFormattedData = 'windFormattedData',
+  windDataSummary = 'windDataSummary',
 
   // @deprecated
   error = 'error'

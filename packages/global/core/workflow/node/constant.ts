@@ -143,7 +143,11 @@ export enum FlowNodeTypeEnum {
   formInput = 'formInput',
   comment = 'comment',
   tool = 'tool',
-  toolSet = 'toolSet'
+  toolSet = 'toolSet',
+
+  // Wind 金融数据节点
+  windData = 'windData',
+  windAnalysis = 'windAnalysis'
 }
 
 // node IO value type

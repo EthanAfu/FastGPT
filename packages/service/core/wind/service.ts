@@ -10,8 +10,21 @@ import {
   InvestmentView
 } from './questionAnalyzer';
 
-// 临时类型定义
-type WindDataTypeEnum = 'stock' | 'bond' | 'fund' | 'commodity' | 'forex' | 'macro';
+// Wind数据类型枚举（基于官方API文档）
+export enum WindDataTypeEnum {
+  STOCK = 'stock', // 股票
+  BOND = 'bond', // 债券
+  FUND = 'fund', // 基金
+  COMMODITY = 'commodity', // 商品期货
+  INDEX = 'index', // 指数
+  FOREX = 'forex', // 外汇
+  MACRO = 'macro', // 宏观经济
+  OPTION = 'option', // 期权
+  FUTURES = 'futures', // 期货
+  REPO = 'repo', // 回购
+  WARRANT = 'warrant', // 权证
+  SECTOR = 'sector' // 行业板块
+}
 
 // Wind API 配置
 export interface WindConfig {
@@ -21,24 +34,90 @@ export interface WindConfig {
   timeout?: number;
 }
 
-// Wind API 数据请求参数
+// Wind API 数据请求参数（支持所有Wind API函数）
 export interface WindDataRequest {
   codes: string[]; // 证券代码数组
   fields: string[]; // 指标字段数组
-  startDate?: string; // 开始日期
-  endDate?: string; // 结束日期
-  frequency?: string; // 数据频率
+  startDate?: string; // 开始日期 YYYY-MM-DD
+  endDate?: string; // 结束日期 YYYY-MM-DD
+  frequency?: WindFrequency; // 数据频率
   dataType: WindDataTypeEnum; // 数据类型
+  options?: WindRequestOptions; // 附加选项
+  apiFunction?: WindAPIFunction; // API函数类型
 }
 
-// Wind API 响应数据结构
+// Wind API函数类型
+export enum WindAPIFunction {
+  WSD = 'wsd', // 时间序列数据
+  WSS = 'wss', // 截面数据
+  WSI = 'wsi', // 分钟数据
+  WST = 'wst', // 成交明细数据
+  WSQ = 'wsq', // 实时行情数据
+  WDT = 'wdt', // 分笔数据
+  WSE = 'wse', // 事件数据
+  WSES = 'wses', // 指定事件数据
+  WSET = 'wset', // 板块成分数据
+  WPLT = 'wplt', // 图片生成
+  WFQA = 'wfqa' // 数据质量检查
+}
+
+// Wind数据频率
+export enum WindFrequency {
+  DAILY = 'D', // 日频
+  WEEKLY = 'W', // 周频
+  MONTHLY = 'M', // 月频
+  QUARTERLY = 'Q', // 季频
+  YEARLY = 'Y', // 年频
+  MINUTE_1 = '1', // 1分钟
+  MINUTE_5 = '5', // 5分钟
+  MINUTE_15 = '15', // 15分钟
+  MINUTE_30 = '30', // 30分钟
+  HOURLY = '60', // 小时
+  TICK = 'tick' // tick级别
+}
+
+// Wind请求附加选项
+export interface WindRequestOptions {
+  tradeDate?: string; // 交易日期
+  currency?: string; // 货币单位
+  rptDate?: string; // 报告期
+  period?: string; // 周期
+  days?: string; // 天数
+  priceAdj?: string; // 复权方式：F前复权，B后复权
+  cycle?: string; // 周期性
+  credibility?: string; // 可信度
+  fill?: string; // 数据填充方式
+  logType?: string; // 日志类型
+  nonTrading?: string; // 非交易日处理
+  showblank?: string; // 显示空白
+  unit?: string; // 单位转换
+}
+
+// Wind API 响应数据结构（标准化格式）
 export interface WindAPIResponse {
-  errorCode: number;
-  data: any[][]; // 数据矩阵
-  fields: string[]; // 字段名
-  codes: string[]; // 证券代码
-  times: string[]; // 时间序列
-  message?: string; // 错误消息
+  errorCode: number; // 错误码：0成功，非0失败
+  data: any[][]; // 数据矩阵 [时间][代码*字段]
+  fields: string[]; // 字段名数组
+  codes: string[]; // 证券代码数组
+  times?: string[]; // 时间序列（时序数据）
+  message?: string; // 错误或状态消息
+  requestId?: string; // 请求ID
+  dataSource?: string; // 数据来源
+  timestamp?: number; // 响应时间戳
+  apiFunction?: WindAPIFunction; // 使用的API函数
+  metadata?: WindResponseMetadata; // 元数据信息
+}
+
+// Wind响应元数据
+export interface WindResponseMetadata {
+  totalCount?: number; // 总记录数
+  pageSize?: number; // 分页大小
+  currentPage?: number; // 当前页
+  hasMore?: boolean; // 是否有更多数据
+  dataQuality?: string; // 数据质量
+  updateTime?: string; // 数据更新时间
+  frequency?: WindFrequency; // 数据频率
+  currency?: string; // 货币单位
 }
 
 // 格式化的金融数据
@@ -170,14 +249,16 @@ export class WindAPIService {
         fields: request.fields.join(','),
         startDate: request.startDate,
         endDate: request.endDate,
-        frequency: request.frequency || 'D',
-        dataType: request.dataType
+        frequency: request.frequency || WindFrequency.DAILY,
+        dataType: request.dataType,
+        apiFunction: request.apiFunction || WindAPIFunction.WSD
       };
 
       console.log('发送到Wind API的请求:', apiRequest);
 
-      // 根据您的wind-api-service接口路径调整这里的URL
-      const response = await this.client.post('/api/data', apiRequest);
+      // 根据API函数类型选择不同的接口路径
+      const apiPath = this.getAPIPath(request.apiFunction || WindAPIFunction.WSD);
+      const response = await this.client.post(apiPath, apiRequest);
 
       if (response.data.errorCode !== 0) {
         throw new Error(`Wind API 错误: ${response.data.message}`);
@@ -340,6 +421,101 @@ export class WindAPIService {
       }
     }
     return String(value);
+  }
+
+  /**
+   * 根据API函数获取对应的接口路径
+   */
+  private getAPIPath(apiFunction: WindAPIFunction): string {
+    const pathMap: Record<WindAPIFunction, string> = {
+      [WindAPIFunction.WSD]: '/api/data', // 时间序列数据
+      [WindAPIFunction.WSS]: '/api/cross', // 截面数据
+      [WindAPIFunction.WSI]: '/api/minute', // 分钟数据
+      [WindAPIFunction.WST]: '/api/tick', // 成交明细
+      [WindAPIFunction.WSQ]: '/api/realtime', // 实时行情
+      [WindAPIFunction.WDT]: '/api/detail', // 分笔数据
+      [WindAPIFunction.WSE]: '/api/event', // 事件数据
+      [WindAPIFunction.WSES]: '/api/events', // 指定事件
+      [WindAPIFunction.WSET]: '/api/sector', // 板块成分
+      [WindAPIFunction.WPLT]: '/api/plot', // 图片生成
+      [WindAPIFunction.WFQA]: '/api/quality' // 数据质量
+    };
+
+    return pathMap[apiFunction] || '/api/data';
+  }
+
+  /**
+   * 创建特定类型的数据请求
+   */
+  createDataRequest(
+    codes: string[],
+    fields: string[],
+    dataType: WindDataTypeEnum,
+    options?: Partial<WindDataRequest>
+  ): WindDataRequest {
+    return {
+      codes,
+      fields,
+      dataType,
+      apiFunction: WindAPIFunction.WSD,
+      frequency: WindFrequency.DAILY,
+      ...options
+    };
+  }
+
+  /**
+   * 创建实时数据请求
+   */
+  createRealtimeRequest(codes: string[], fields: string[]): WindDataRequest {
+    return this.createDataRequest(codes, fields, WindDataTypeEnum.STOCK, {
+      apiFunction: WindAPIFunction.WSQ
+    });
+  }
+
+  /**
+   * 创建历史数据请求
+   */
+  createHistoricalRequest(
+    codes: string[],
+    fields: string[],
+    startDate: string,
+    endDate: string,
+    frequency: WindFrequency = WindFrequency.DAILY
+  ): WindDataRequest {
+    return this.createDataRequest(codes, fields, WindDataTypeEnum.STOCK, {
+      apiFunction: WindAPIFunction.WSD,
+      startDate,
+      endDate,
+      frequency
+    });
+  }
+
+  /**
+   * 创建截面数据请求
+   */
+  createCrossSectionRequest(codes: string[], fields: string[], tradeDate: string): WindDataRequest {
+    return this.createDataRequest(codes, fields, WindDataTypeEnum.STOCK, {
+      apiFunction: WindAPIFunction.WSS,
+      options: { tradeDate }
+    });
+  }
+
+  /**
+   * 创建分钟级数据请求
+   */
+  createMinuteRequest(
+    codes: string[],
+    fields: string[],
+    startDate: string,
+    endDate: string,
+    frequency: WindFrequency = WindFrequency.MINUTE_1
+  ): WindDataRequest {
+    return this.createDataRequest(codes, fields, WindDataTypeEnum.STOCK, {
+      apiFunction: WindAPIFunction.WSI,
+      startDate,
+      endDate,
+      frequency
+    });
   }
 
   /**
@@ -549,4 +725,55 @@ export function extractStockCodes(query: string): string[] {
  */
 export function inferIndicators(query: string): string[] {
   return inferIndicatorsFromQuery(query);
+}
+
+/**
+ * 验证Wind代码格式
+ */
+export function validateWindCode(code: string): boolean {
+  // Wind代码格式：6位数字.交易所代码
+  const windCodePattern = /^\d{6}\.(SH|SZ|CF|SHF|CZC|DCE|INE|OC)$/;
+  return windCodePattern.test(code);
+}
+
+/**
+ * 标准化Wind代码格式
+ */
+export function normalizeWindCode(code: string): string {
+  // 移除空格和转换为大写
+  const cleanCode = code.trim().toUpperCase();
+
+  // 如果只有6位数字，自动添加交易所后缀
+  if (/^\d{6}$/.test(cleanCode)) {
+    // 根据股票代码范围推断交易所
+    const num = parseInt(cleanCode);
+    if (num >= 600000 && num <= 688999) {
+      return `${cleanCode}.SH`; // 上交所
+    } else if (num >= 0 && num <= 399999) {
+      return `${cleanCode}.SZ`; // 深交所
+    }
+  }
+
+  return cleanCode;
+}
+
+/**
+ * 获取支持的资产类型列表
+ */
+export function getSupportedAssetTypes(): WindDataTypeEnum[] {
+  return Object.values(WindDataTypeEnum);
+}
+
+/**
+ * 获取支持的API函数列表
+ */
+export function getSupportedAPIFunctions(): WindAPIFunction[] {
+  return Object.values(WindAPIFunction);
+}
+
+/**
+ * 获取支持的数据频率列表
+ */
+export function getSupportedFrequencies(): WindFrequency[] {
+  return Object.values(WindFrequency);
 }

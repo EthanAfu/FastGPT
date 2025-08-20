@@ -18,6 +18,7 @@ import {
   textAdaptGptResponse
 } from '@fastgpt/global/core/workflow/runtime/utils';
 import { addLog } from '../../../../common/system/log';
+import type { WindFrequency } from '../../wind/service';
 import { formatHttpError } from '../utils';
 
 // Wind API 相关导入
@@ -122,7 +123,7 @@ export const dispatchWindData = async (props: WindDataProps): Promise<WindDataRe
       const processedStockCode = replaceStringVariables(windStockCode);
       codes = processedStockCode
         .split(',')
-        .map((code) => code.trim())
+        .map((code: string) => code.trim())
         .filter(Boolean);
     }
 
@@ -159,7 +160,7 @@ export const dispatchWindData = async (props: WindDataProps): Promise<WindDataRe
       const processedIndicator = replaceStringVariables(windIndicator);
       indicators = processedIndicator
         .split(',')
-        .map((indicator) => indicator.trim())
+        .map((indicator: string) => indicator.trim())
         .filter(Boolean);
     } else {
       // 如果没有明确指定指标，根据用户问题推断
@@ -177,8 +178,8 @@ export const dispatchWindData = async (props: WindDataProps): Promise<WindDataRe
       fields: indicators,
       startDate: processedStartDate,
       endDate: processedEndDate,
-      frequency: windFrequency,
-      dataType: windDataType
+      frequency: windFrequency as WindFrequency,
+      dataType: windDataType as any
     };
 
     // 发送状态更新
@@ -275,8 +276,7 @@ export const dispatchWindData = async (props: WindDataProps): Promise<WindDataRe
 
     return {
       [DispatchNodeResponseKeyEnum.nodeResponse]: {
-        totalPoints: 1,
-        windDataUsage: 1
+        totalPoints: 1
       },
       [DispatchNodeResponseKeyEnum.toolResponses]: outputs
     };

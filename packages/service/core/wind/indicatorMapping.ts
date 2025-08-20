@@ -23,7 +23,11 @@ export enum IndicatorCategory {
   SOLVENCY = '偿债能力',
   OPERATION = '运营能力',
   TECHNICAL = '技术指标',
-  MACRO = '宏观指标'
+  MACRO = '宏观指标',
+  FUND = '基金指标',
+  BOND = '债券指标',
+  COMMODITY = '商品指标',
+  INDEX = '指数指标'
 }
 
 // Wind指标映射表
@@ -292,6 +296,211 @@ export const indicatorMapping: Record<string, IndicatorConfig> = {
     description: '流通市值',
     unit: '万元',
     keywords: ['流通市值', '流通盘']
+  },
+
+  // 技术指标
+  ma5: {
+    code: 'ma5',
+    name: '5日均线',
+    category: IndicatorCategory.TECHNICAL,
+    description: '5日简单移动平均',
+    unit: '元',
+    keywords: ['5日均线', '5日线', 'MA5', 'ma5']
+  },
+  ma10: {
+    code: 'ma10',
+    name: '10日均线',
+    category: IndicatorCategory.TECHNICAL,
+    description: '10日简单移动平均',
+    unit: '元',
+    keywords: ['10日均线', '10日线', 'MA10', 'ma10']
+  },
+  ma20: {
+    code: 'ma20',
+    name: '20日均线',
+    category: IndicatorCategory.TECHNICAL,
+    description: '20日简单移动平均',
+    unit: '元',
+    keywords: ['20日均线', '20日线', 'MA20', 'ma20']
+  },
+  rsi: {
+    code: 'rsi',
+    name: 'RSI指标',
+    category: IndicatorCategory.TECHNICAL,
+    description: '相对强弱指数',
+    keywords: ['RSI', 'rsi', '相对强弱指数']
+  },
+  macd: {
+    code: 'macd',
+    name: 'MACD指标',
+    category: IndicatorCategory.TECHNICAL,
+    description: '指数平滑移动平均线',
+    keywords: ['MACD', 'macd', '指数平滑移动平均']
+  },
+  kdj_k: {
+    code: 'kdj_k',
+    name: 'KDJ-K值',
+    category: IndicatorCategory.TECHNICAL,
+    description: 'KDJ指标K值',
+    keywords: ['KDJ', 'kdj', 'K值']
+  },
+  boll_upper: {
+    code: 'boll_upper',
+    name: '布林上轨',
+    category: IndicatorCategory.TECHNICAL,
+    description: '布林带上轨',
+    unit: '元',
+    keywords: ['布林带', '上轨', 'BOLL', 'boll']
+  },
+  boll_lower: {
+    code: 'boll_lower',
+    name: '布林下轨',
+    category: IndicatorCategory.TECHNICAL,
+    description: '布林带下轨',
+    unit: '元',
+    keywords: ['布林带', '下轨', 'BOLL', 'boll']
+  },
+
+  // 宏观指标
+  cpi: {
+    code: 'cpi',
+    name: '消费者物价指数',
+    category: IndicatorCategory.MACRO,
+    description: '消费者物价指数(CPI)',
+    unit: '%',
+    keywords: ['CPI', 'cpi', '消费者物价指数', '通胀']
+  },
+  ppi: {
+    code: 'ppi',
+    name: '生产者物价指数',
+    category: IndicatorCategory.MACRO,
+    description: '生产者物价指数(PPI)',
+    unit: '%',
+    keywords: ['PPI', 'ppi', '生产者物价指数']
+  },
+  gdp_yoy: {
+    code: 'gdp_yoy',
+    name: 'GDP同比增速',
+    category: IndicatorCategory.MACRO,
+    description: '国内生产总值同比增速',
+    unit: '%',
+    keywords: ['GDP', 'gdp', '国内生产总值', '经济增速']
+  },
+  m2_yoy: {
+    code: 'm2_yoy',
+    name: 'M2同比增速',
+    category: IndicatorCategory.MACRO,
+    description: '广义货币供应量M2同比增速',
+    unit: '%',
+    keywords: ['M2', 'm2', '货币供应量']
+  },
+  shibor_3m: {
+    code: 'shibor_3m',
+    name: '3月Shibor',
+    category: IndicatorCategory.MACRO,
+    description: '3个月上海银行间同业拆借利率',
+    unit: '%',
+    keywords: ['Shibor', 'shibor', '同业拆借利率', '利率']
+  },
+
+  // 基金指标
+  fund_nav: {
+    code: 'fund_nav',
+    name: '基金单位净值',
+    category: IndicatorCategory.FUND,
+    description: '基金单位净值',
+    unit: '元',
+    keywords: ['基金净值', '单位净值', 'NAV', 'nav']
+  },
+  fund_acc_nav: {
+    code: 'fund_acc_nav',
+    name: '基金累计净值',
+    category: IndicatorCategory.FUND,
+    description: '基金累计单位净值',
+    unit: '元',
+    keywords: ['累计净值', '累计单位净值']
+  },
+  fund_return_1y: {
+    code: 'fund_return_1y',
+    name: '基金1年收益率',
+    category: IndicatorCategory.FUND,
+    description: '基金近一年收益率',
+    unit: '%',
+    keywords: ['基金收益', '1年收益', '年化收益']
+  },
+  fund_sharpe: {
+    code: 'fund_sharpe',
+    name: '基金夏普比率',
+    category: IndicatorCategory.FUND,
+    description: '基金夏普比率',
+    keywords: ['夏普比率', 'Sharpe', 'sharpe', '风险调整收益']
+  },
+
+  // 债券指标
+  bond_ytm: {
+    code: 'bond_ytm',
+    name: '债券到期收益率',
+    category: IndicatorCategory.BOND,
+    description: '债券到期收益率(YTM)',
+    unit: '%',
+    keywords: ['到期收益率', 'YTM', 'ytm', '债券收益']
+  },
+  bond_duration: {
+    code: 'bond_duration',
+    name: '债券久期',
+    category: IndicatorCategory.BOND,
+    description: '债券修正久期',
+    unit: '年',
+    keywords: ['久期', 'duration', '修正久期']
+  },
+  bond_convexity: {
+    code: 'bond_convexity',
+    name: '债券凸性',
+    category: IndicatorCategory.BOND,
+    description: '债券凸性',
+    keywords: ['凸性', 'convexity', '价格敏感性']
+  },
+
+  // 商品指标
+  commodity_settle: {
+    code: 'commodity_settle',
+    name: '商品期货结算价',
+    category: IndicatorCategory.COMMODITY,
+    description: '商品期货结算价',
+    unit: '元',
+    keywords: ['结算价', '期货价格', 'settle']
+  },
+  commodity_oi: {
+    code: 'commodity_oi',
+    name: '商品期货持仓量',
+    category: IndicatorCategory.COMMODITY,
+    description: '商品期货未平仓量',
+    unit: '手',
+    keywords: ['持仓量', '未平仓', 'open interest', 'oi']
+  },
+
+  // 指数指标
+  index_weight: {
+    code: 'index_weight',
+    name: '指数成分权重',
+    category: IndicatorCategory.INDEX,
+    description: '股票在指数中的权重',
+    unit: '%',
+    keywords: ['权重', '指数权重', 'weight']
+  },
+  index_pe: {
+    code: 'index_pe',
+    name: '指数市盈率',
+    category: IndicatorCategory.INDEX,
+    description: '指数市盈率',
+    keywords: ['指数PE', '指数市盈率']
+  },
+  index_pb: {
+    code: 'index_pb',
+    name: '指数市净率',
+    category: IndicatorCategory.INDEX,
+    description: '指数市净率',
+    keywords: ['指数PB', '指数市净率']
   }
 };
 
@@ -312,9 +521,45 @@ export function inferIndicatorsFromQuery(query: string): string[] {
     }
   });
 
-  // 如果没有匹配到特定指标，返回默认基础指标
+  // 如果没有匹配到特定指标，根据问题类型返回默认指标
   if (matchedIndicators.size === 0) {
-    // 基础指标集
+    // 根据问题内容智能推断需要的指标类型
+    if (
+      normalizedQuery.includes('技术') ||
+      normalizedQuery.includes('均线') ||
+      normalizedQuery.includes('macd') ||
+      normalizedQuery.includes('rsi')
+    ) {
+      return ['close', 'ma5', 'ma20', 'rsi', 'macd', 'volume'];
+    } else if (
+      normalizedQuery.includes('基金') ||
+      normalizedQuery.includes('净值') ||
+      normalizedQuery.includes('收益')
+    ) {
+      return ['fund_nav', 'fund_acc_nav', 'fund_return_1y', 'fund_sharpe'];
+    } else if (
+      normalizedQuery.includes('债券') ||
+      normalizedQuery.includes('利率') ||
+      normalizedQuery.includes('收益率')
+    ) {
+      return ['bond_ytm', 'bond_duration', 'close', 'volume'];
+    } else if (
+      normalizedQuery.includes('期货') ||
+      normalizedQuery.includes('商品') ||
+      normalizedQuery.includes('持仓')
+    ) {
+      return ['commodity_settle', 'commodity_oi', 'volume', 'pct_chg'];
+    } else if (normalizedQuery.includes('指数') || normalizedQuery.includes('指数')) {
+      return ['close', 'index_pe', 'index_pb', 'volume', 'pct_chg'];
+    } else if (
+      normalizedQuery.includes('宏观') ||
+      normalizedQuery.includes('gdp') ||
+      normalizedQuery.includes('cpi')
+    ) {
+      return ['cpi', 'ppi', 'gdp_yoy', 'm2_yoy', 'shibor_3m'];
+    }
+
+    // 默认股票基础指标集
     return ['close', 'volume', 'pe_ttm', 'pb_lf', 'roe_ttm', 'or_yoy', 'np_yoy'];
   }
 
@@ -342,6 +587,26 @@ export function inferIndicatorsFromQuery(query: string): string[] {
   // 如果查询成长性，补充相关指标
   if (categories.has(IndicatorCategory.GROWTH)) {
     ['or_yoy', 'np_yoy', 'eps_ttm'].forEach((code) => matchedIndicators.add(code));
+  }
+
+  // 如果查询技术指标，补充相关指标
+  if (categories.has(IndicatorCategory.TECHNICAL)) {
+    ['close', 'volume', 'ma5', 'ma20'].forEach((code) => matchedIndicators.add(code));
+  }
+
+  // 如果查询基金指标，补充相关指标
+  if (categories.has(IndicatorCategory.FUND)) {
+    ['fund_nav', 'fund_acc_nav', 'fund_return_1y'].forEach((code) => matchedIndicators.add(code));
+  }
+
+  // 如果查询债券指标，补充相关指标
+  if (categories.has(IndicatorCategory.BOND)) {
+    ['bond_ytm', 'close', 'volume'].forEach((code) => matchedIndicators.add(code));
+  }
+
+  // 如果查询宏观指标，补充相关指标
+  if (categories.has(IndicatorCategory.MACRO)) {
+    ['cpi', 'ppi', 'gdp_yoy'].forEach((code) => matchedIndicators.add(code));
   }
 
   return Array.from(matchedIndicators);

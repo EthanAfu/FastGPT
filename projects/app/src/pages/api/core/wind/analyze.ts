@@ -4,7 +4,9 @@ import { authUserPer } from '@fastgpt/service/support/permission/user/auth';
 import {
   getWindAPIService,
   extractStockCodes,
-  inferIndicators
+  inferIndicators,
+  WindFrequency,
+  WindDataTypeEnum
 } from '@fastgpt/service/core/wind/service';
 import { analyzeQuestion } from '@fastgpt/service/core/wind/questionAnalyzer';
 
@@ -48,8 +50,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       fields: queryIndicators,
       startDate: startDate || undefined,
       endDate: endDate || undefined,
-      frequency: 'D',
-      dataType: 'stock' as any
+      frequency: WindFrequency.DAILY,
+      dataType: WindDataTypeEnum.STOCK
     };
 
     console.log('Wind请求参数:', windRequest);

@@ -1,0 +1,259 @@
+{
+  "name": "金融智能分析工作流",
+  "description": "基于Wind数据的全资产类型金融智能分析工作流，支持股票、债券、基金、指数、商品等多种金融产品的问答和投资建议",
+  "version": "1.0.0",
+  "workflow": {
+    "nodes": [
+      {
+        "nodeId": "userInput",
+        "name": "用户输入",
+        "intro": "用户提出的金融问题",
+        "flowNodeType": "userInput",
+        "position": { "x": 100, "y": 200 },
+        "inputs": [],
+        "outputs": [
+          {
+            "id": "userChatInput",
+            "key": "userChatInput",
+            "label": "用户问题",
+            "type": "static",
+            "valueType": "string"
+          }
+        ]
+      },
+      {
+        "nodeId": "questionAnalysis", 
+        "name": "问题分析",
+        "intro": "分析用户问题类型和所需数据",
+        "flowNodeType": "code",
+        "position": { "x": 300, "y": 200 },
+        "inputs": [
+          {
+            "key": "codeType",
+            "valueType": "string",
+            "value": "js"
+          },
+          {
+            "key": "code",
+            "valueType": "string", 
+            "value": "function main({userInput}) {\n  // 使用FastGPT的问题分析功能\n  const analysis = {\n    assetType: 'stock', // 默认股票\n    codes: [],\n    indicators: ['close', 'volume', 'pe_ttm'],\n    needsAdvice: true\n  };\n  \n  // 简单的问题类型判断\n  if (userInput.includes('基金') || userInput.includes('净值')) {\n    analysis.assetType = 'fund';\n    analysis.indicators = ['fund_nav', 'fund_return_1y'];\n  } else if (userInput.includes('债券') || userInput.includes('利率')) {\n    analysis.assetType = 'bond';\n    analysis.indicators = ['bond_ytm', 'close'];\n  } else if (userInput.includes('指数')) {\n    analysis.assetType = 'index';\n    analysis.indicators = ['close', 'index_pe', 'index_pb'];\n  } else if (userInput.includes('期货') || userInput.includes('商品')) {\n    analysis.assetType = 'commodity';\n    analysis.indicators = ['commodity_settle', 'commodity_oi'];\n  }\n  \n  return {\n    analysisResult: JSON.stringify(analysis),\n    assetType: analysis.assetType,\n    indicators: analysis.indicators.join(','),\n    needsAdvice: analysis.needsAdvice\n  };\n}"
+          },
+          {
+            "key": "userInput",
+            "valueType": "string",
+            "value": "{{userInput.userChatInput}}"
+          }
+        ],
+        "outputs": [
+          {
+            "id": "analysisResult",
+            "key": "analysisResult", 
+            "label": "分析结果",
+            "type": "static",
+            "valueType": "string"
+          },
+          {
+            "id": "assetType",
+            "key": "assetType",
+            "label": "资产类型", 
+            "type": "static",
+            "valueType": "string"
+          },
+          {
+            "id": "indicators",
+            "key": "indicators",
+            "label": "指标字段",
+            "type": "static", 
+            "valueType": "string"
+          },
+          {
+            "id": "needsAdvice",
+            "key": "needsAdvice",
+            "label": "需要建议",
+            "type": "static",
+            "valueType": "boolean"
+          }
+        ]
+      },
+      {
+        "nodeId": "windData",
+        "name": "Wind数据获取", 
+        "intro": "从Wind API获取金融数据",
+        "flowNodeType": "windData",
+        "position": { "x": 500, "y": 200 },
+        "inputs": [
+          {
+            "key": "windDataType",
+            "valueType": "string",
+            "value": "{{questionAnalysis.assetType}}"
+          },
+          {
+            "key": "windStockCode", 
+            "valueType": "string",
+            "value": ""
+          },
+          {
+            "key": "windIndicator",
+            "valueType": "string", 
+            "value": "{{questionAnalysis.indicators}}"
+          },
+          {
+            "key": "windStartDate",
+            "valueType": "string",
+            "value": ""
+          },
+          {
+            "key": "windEndDate", 
+            "valueType": "string",
+            "value": ""
+          },
+          {
+            "key": "windFrequency",
+            "valueType": "string",
+            "value": "D"
+          }
+        ],
+        "outputs": [
+          {
+            "id": "windRawData",
+            "key": "windRawData",
+            "label": "原始数据",
+            "type": "static", 
+            "valueType": "object"
+          },
+          {
+            "id": "windFormattedData",
+            "key": "windFormattedData", 
+            "label": "格式化数据",
+            "type": "static",
+            "valueType": "string"
+          }
+        ]
+      },
+      {
+        "nodeId": "aiAnalysis",
+        "name": "AI智能分析",
+        "intro": "使用AI模型分析Wind数据并生成投资建议", 
+        "flowNodeType": "chatNode",
+        "position": { "x": 700, "y": 200 },
+        "inputs": [
+          {
+            "key": "model",
+            "valueType": "string",
+            "value": "gpt-4"
+          },
+          {
+            "key": "temperature",
+            "valueType": "number", 
+            "value": 0.3
+          },
+          {
+            "key": "systemPrompt",
+            "valueType": "string",
+            "value": "你是一名专业的金融分析师，拥有丰富的投资分析经验。请基于用户提供的Wind金融数据，进行专业的分析：\n\n**分析框架**：\n1. **数据概览**: 总结关键数据指标\n2. **趋势分析**: 分析价格和指标变化趋势\n3. **估值分析**: 评估当前估值水平是否合理\n4. **风险评估**: 识别主要风险因素\n5. **投资建议**: 给出明确的投资观点(看好/中性/看空)\n\n**输出要求**：\n- 用专业但通俗易懂的语言\n- 提供具体的数据支撑\n- 给出明确的投资建议和理由\n- 包含风险提示\n\n请严格按照上述框架进行分析，确保建议客观专业。"
+          },
+          {
+            "key": "userChatInput",
+            "valueType": "string",
+            "value": "用户问题：{{userInput.userChatInput}}\n\nWind数据：\n{{windData.windFormattedData}}\n\n请基于以上数据进行专业分析并给出投资建议。"
+          }
+        ],
+        "outputs": [
+          {
+            "id": "answerText",
+            "key": "answerText",
+            "label": "分析结果", 
+            "type": "static",
+            "valueType": "string"
+          }
+        ]
+      },
+      {
+        "nodeId": "responseFormat",
+        "name": "结果格式化",
+        "intro": "格式化最终输出结果",
+        "flowNodeType": "code", 
+        "position": { "x": 900, "y": 200 },
+        "inputs": [
+          {
+            "key": "codeType",
+            "valueType": "string",
+            "value": "js"
+          },
+          {
+            "key": "code",
+            "valueType": "string",
+            "value": "function main({userQuestion, aiAnalysis, windData}) {\n  const timestamp = new Date().toLocaleString('zh-CN');\n  \n  const formattedResult = `# 金融智能分析报告\n\n**查询问题**: ${userQuestion}\n**分析时间**: ${timestamp}\n**数据来源**: Wind金融终端\n\n---\n\n${aiAnalysis}\n\n---\n\n**免责声明**: 本分析仅供参考，不构成投资建议。投资有风险，入市需谨慎。`;\n  \n  return {\n    finalResult: formattedResult,\n    timestamp: timestamp\n  };\n}"
+          },
+          {
+            "key": "userQuestion", 
+            "valueType": "string",
+            "value": "{{userInput.userChatInput}}"
+          },
+          {
+            "key": "aiAnalysis",
+            "valueType": "string",
+            "value": "{{aiAnalysis.answerText}}"
+          },
+          {
+            "key": "windData",
+            "valueType": "string", 
+            "value": "{{windData.windFormattedData}}"
+          }
+        ],
+        "outputs": [
+          {
+            "id": "finalResult",
+            "key": "finalResult",
+            "label": "最终结果",
+            "type": "static",
+            "valueType": "string"
+          }
+        ]
+      }
+    ],
+    "edges": [
+      {
+        "source": "userInput",
+        "target": "questionAnalysis",
+        "sourceHandle": "userInput-source-right",
+        "targetHandle": "questionAnalysis-target-left"
+      },
+      {
+        "source": "questionAnalysis", 
+        "target": "windData",
+        "sourceHandle": "questionAnalysis-source-right",
+        "targetHandle": "windData-target-left"
+      },
+      {
+        "source": "windData",
+        "target": "aiAnalysis", 
+        "sourceHandle": "windData-source-right",
+        "targetHandle": "aiAnalysis-target-left"
+      },
+      {
+        "source": "aiAnalysis",
+        "target": "responseFormat",
+        "sourceHandle": "aiAnalysis-source-right", 
+        "targetHandle": "responseFormat-target-left"
+      }
+    ]
+  },
+  "testCases": [
+    {
+      "name": "股票分析测试",
+      "input": "分析一下贵州茅台的投资价值",
+      "expectedOutput": "基于Wind数据的茅台股票专业分析"
+    },
+    {
+      "name": "基金分析测试", 
+      "input": "易方达蓝筹精选基金怎么样",
+      "expectedOutput": "基金净值和收益分析"
+    },
+    {
+      "name": "债券分析测试",
+      "input": "当前国债收益率如何", 
+      "expectedOutput": "债券市场和利率分析"
+    }
+  ]
+}

@@ -26,8 +26,14 @@ export enum WindDataTypeEnum {
   bond = 'bond', // 债券
   fund = 'fund', // 基金
   commodity = 'commodity', // 商品期货
+  index = 'index', // 指数
   forex = 'forex', // 外汇
-  macro = 'macro' // 宏观数据
+  macro = 'macro', // 宏观数据
+  option = 'option', // 期权
+  futures = 'futures', // 期货
+  repo = 'repo', // 回购
+  warrant = 'warrant', // 权证
+  sector = 'sector' // 行业板块
 }
 
 // Wind API 节点输入输出键
@@ -59,7 +65,7 @@ export const WindDataNode: FlowNodeTemplateType = {
     },
     {
       key: NodeInputKeyEnum.windDataType,
-      renderTypeList: [FlowNodeInputTypeEnum.select],
+      renderTypeList: [FlowNodeInputTypeEnum.reference, FlowNodeInputTypeEnum.select],
       valueType: WorkflowIOValueTypeEnum.string,
       label: '数据类型',
       value: WindDataTypeEnum.stock,
@@ -68,9 +74,15 @@ export const WindDataNode: FlowNodeTemplateType = {
         { label: '股票数据', value: WindDataTypeEnum.stock },
         { label: '债券数据', value: WindDataTypeEnum.bond },
         { label: '基金数据', value: WindDataTypeEnum.fund },
+        { label: '指数数据', value: WindDataTypeEnum.index },
         { label: '商品期货', value: WindDataTypeEnum.commodity },
+        { label: '期货数据', value: WindDataTypeEnum.futures },
+        { label: '期权数据', value: WindDataTypeEnum.option },
         { label: '外汇数据', value: WindDataTypeEnum.forex },
-        { label: '宏观数据', value: WindDataTypeEnum.macro }
+        { label: '宏观数据', value: WindDataTypeEnum.macro },
+        { label: '回购数据', value: WindDataTypeEnum.repo },
+        { label: '权证数据', value: WindDataTypeEnum.warrant },
+        { label: '行业板块', value: WindDataTypeEnum.sector }
       ]
     },
     {
@@ -78,8 +90,8 @@ export const WindDataNode: FlowNodeTemplateType = {
       renderTypeList: [FlowNodeInputTypeEnum.reference, FlowNodeInputTypeEnum.input],
       valueType: WorkflowIOValueTypeEnum.string,
       label: '证券代码',
-      description: '输入股票/债券/基金代码，多个代码用逗号分隔',
-      placeholder: '600519.SH,000858.SZ',
+      description: '输入证券代码，支持股票、债券、基金、指数等，多个代码用逗号分隔',
+      placeholder: '600519.SH,000300.SH,110072.SH',
       required: false
     },
     {

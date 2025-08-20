@@ -1,0 +1,230 @@
+{
+  "name": "智能股票分析工作流",
+  "description": "基于Wind数据的智能股票分析和投资建议工作流",
+  "nodes": [
+    {
+      "nodeId": "start",
+      "name": "工作流开始",
+      "flowNodeType": "workflowStart",
+      "position": {
+        "x": 100,
+        "y": 300
+      },
+      "inputs": [],
+      "outputs": [
+        {
+          "id": "userQuestion",
+          "key": "userChatInput",
+          "label": "用户问题",
+          "type": "static",
+          "valueType": "string"
+        }
+      ]
+    },
+    {
+      "nodeId": "questionAnalysis",
+      "name": "问题分析",
+      "flowNodeType": "textEditor",
+      "position": {
+        "x": 400,
+        "y": 300
+      },
+      "inputs": [
+        {
+          "key": "text",
+          "renderTypeList": ["reference"],
+          "valueType": "string",
+          "label": "输入文本",
+          "value": ["start", "userQuestion"]
+        },
+        {
+          "key": "prompt",
+          "renderTypeList": ["textarea"],
+          "valueType": "string",
+          "label": "分析提示",
+          "value": "分析用户问题，提取：\n1. 股票代码或公司名称\n2. 需要查询的指标类型\n3. 时间范围\n4. 问题意图（查询数据/分析/建议）"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "analysisResult",
+          "key": "analysisResult",
+          "label": "分析结果",
+          "type": "static",
+          "valueType": "string"
+        }
+      ]
+    },
+    {
+      "nodeId": "windData",
+      "name": "Wind数据获取",
+      "flowNodeType": "windData",
+      "position": {
+        "x": 700,
+        "y": 300
+      },
+      "inputs": [
+        {
+          "key": "windDataType",
+          "renderTypeList": ["select"],
+          "valueType": "string",
+          "label": "数据类型",
+          "value": "stock"
+        },
+        {
+          "key": "windStockCode",
+          "renderTypeList": ["reference"],
+          "valueType": "string",
+          "label": "股票代码",
+          "description": "从用户问题中提取的股票代码",
+          "value": ["questionAnalysis", "analysisResult"]
+        },
+        {
+          "key": "windIndicator",
+          "renderTypeList": ["textarea"],
+          "valueType": "string",
+          "label": "查询指标",
+          "value": "close,volume,pe_ttm,pb_lf,roe_ttm,or_yoy,np_yoy,debttoassets,mkt_cap_ard"
+        },
+        {
+          "key": "windFrequency",
+          "renderTypeList": ["select"],
+          "valueType": "string",
+          "label": "数据频率",
+          "value": "D"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "windRawData",
+          "key": "windRawData",
+          "label": "原始数据",
+          "type": "static",
+          "valueType": "object"
+        },
+        {
+          "id": "windFormattedData",
+          "key": "windFormattedData",
+          "label": "格式化数据",
+          "type": "static",
+          "valueType": "string"
+        },
+        {
+          "id": "windDataSummary",
+          "key": "windDataSummary",
+          "label": "数据摘要",
+          "type": "static",
+          "valueType": "object"
+        }
+      ]
+    },
+    {
+      "nodeId": "aiAnalysis",
+      "name": "AI智能分析",
+      "flowNodeType": "chatNode",
+      "position": {
+        "x": 1000,
+        "y": 300
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "renderTypeList": ["selectLLMModel"],
+          "valueType": "string",
+          "label": "AI模型",
+          "value": "gpt-4"
+        },
+        {
+          "key": "systemPrompt",
+          "renderTypeList": ["textarea"],
+          "valueType": "string",
+          "label": "系统提示词",
+          "value": "你是一名专业的金融分析师，拥有丰富的投资经验。请基于提供的Wind数据进行深度分析，并给出明确的投资建议。\n\n分析要求：\n1. 解读关键财务指标\n2. 评估公司基本面\n3. 分析行业地位和竞争优势\n4. 识别风险因素\n5. 给出明确的投资观点（看好/看空/中性）\n6. 提供投资建议的置信度（0-100%）\n\n请用专业但易懂的语言，让普通投资者也能理解。"
+        },
+        {
+          "key": "userPrompt",
+          "renderTypeList": ["reference", "textarea"],
+          "valueType": "string",
+          "label": "用户提示",
+          "value": "用户问题：{{userQuestion}}\n\nWind数据：\n{{windFormattedData}}\n\n请基于以上数据进行专业分析，并给出投资建议。"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "aiResponse",
+          "key": "text",
+          "label": "分析结果",
+          "type": "static",
+          "valueType": "string"
+        }
+      ]
+    },
+    {
+      "nodeId": "decisionOutput",
+      "name": "决策输出",
+      "flowNodeType": "answer",
+      "position": {
+        "x": 1300,
+        "y": 300
+      },
+      "inputs": [
+        {
+          "key": "text",
+          "renderTypeList": ["reference", "textarea"],
+          "valueType": "string",
+          "label": "输出内容",
+          "value": ["aiAnalysis", "aiResponse"]
+        }
+      ],
+      "outputs": []
+    }
+  ],
+  "edges": [
+    {
+      "source": "start",
+      "sourceHandle": "start-source-right",
+      "target": "questionAnalysis",
+      "targetHandle": "questionAnalysis-target-left"
+    },
+    {
+      "source": "questionAnalysis",
+      "sourceHandle": "questionAnalysis-source-right",
+      "target": "windData",
+      "targetHandle": "windData-target-left"
+    },
+    {
+      "source": "windData",
+      "sourceHandle": "windData-source-right",
+      "target": "aiAnalysis",
+      "targetHandle": "aiAnalysis-target-left"
+    },
+    {
+      "source": "aiAnalysis",
+      "sourceHandle": "aiAnalysis-source-right",
+      "target": "decisionOutput",
+      "targetHandle": "decisionOutput-target-left"
+    }
+  ],
+  "chatConfig": {
+    "welcomeText": "您好！我是智能金融分析助手。请输入您想了解的股票名称或问题，我将为您提供专业的分析和投资建议。\n\n示例问题：\n- 分析贵州茅台的投资价值\n- 比亚迪和宁德时代哪个更值得投资？\n- 医药板块的投资机会在哪里？\n- 科大讯飞面临的风险和机遇",
+    "variables": [],
+    "questionGuide": true,
+    "questionGuideList": [
+      "分析贵州茅台的基本面",
+      "新能源汽车板块的投资机会",
+      "半导体行业的发展前景",
+      "哪些股票适合长期投资？"
+    ],
+    "ttsConfig": {
+      "type": "none"
+    },
+    "whisperConfig": {
+      "open": false
+    },
+    "scheduledTriggerConfig": {
+      "cronString": "",
+      "timezone": "Asia/Shanghai",
+      "defaultPrompt": ""
+    }
+  }
+}

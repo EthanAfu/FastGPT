@@ -21,16 +21,12 @@ import { addLog } from '../../../../common/system/log';
 import { formatHttpError } from '../utils';
 
 // Wind API 相关导入
-import type { 
+import type {
   WindAPIService,
   WindDataRequest,
   FormattedFinancialData
 } from '../../../wind/service';
-import { 
-  getWindAPIService,
-  extractStockCodes,
-  inferIndicators
-} from '../../../wind/service';
+import { getWindAPIService, extractStockCodes, inferIndicators } from '../../../wind/service';
 
 // 临时类型定义
 type WindDataTypeEnum = 'stock' | 'bond' | 'fund' | 'commodity' | 'forex' | 'macro';
@@ -124,7 +120,10 @@ export const dispatchWindData = async (props: WindDataProps): Promise<WindDataRe
     let codes: string[] = [];
     if (windStockCode) {
       const processedStockCode = replaceStringVariables(windStockCode);
-      codes = processedStockCode.split(',').map(code => code.trim()).filter(Boolean);
+      codes = processedStockCode
+        .split(',')
+        .map((code) => code.trim())
+        .filter(Boolean);
     }
 
     // 如果没有明确指定股票代码，尝试从用户输入中提取
@@ -135,8 +134,9 @@ export const dispatchWindData = async (props: WindDataProps): Promise<WindDataRe
 
     // 验证是否有有效的证券代码
     if (codes.length === 0) {
-      const errorMsg = '未能识别有效的证券代码。请输入正确的股票代码，如 600519.SH（贵州茅台）或 000001.SZ（平安银行）';
-      
+      const errorMsg =
+        '未能识别有效的证券代码。请输入正确的股票代码，如 600519.SH（贵州茅台）或 000001.SZ（平安银行）';
+
       if (workflowStreamResponse) {
         workflowStreamResponse?.({
           event: SseResponseEventEnum.answer,
@@ -145,7 +145,7 @@ export const dispatchWindData = async (props: WindDataProps): Promise<WindDataRe
           })
         });
       }
-      
+
       return {
         [DispatchNodeResponseKeyEnum.toolResponses]: {
           [NodeOutputKeyEnum.error]: errorMsg
@@ -157,7 +157,10 @@ export const dispatchWindData = async (props: WindDataProps): Promise<WindDataRe
     let indicators: string[] = [];
     if (windIndicator) {
       const processedIndicator = replaceStringVariables(windIndicator);
-      indicators = processedIndicator.split(',').map(indicator => indicator.trim()).filter(Boolean);
+      indicators = processedIndicator
+        .split(',')
+        .map((indicator) => indicator.trim())
+        .filter(Boolean);
     } else {
       // 如果没有明确指定指标，根据用户问题推断
       const userInput = allVariables.userChatInput || '';
@@ -198,6 +201,25 @@ export const dispatchWindData = async (props: WindDataProps): Promise<WindDataRe
     // 生成文本描述
     const dataDescription = windService.generateDataDescription(formattedData);
 
+    // 如果请求中包含分析需求，执行智能分析
+    let analysisResult = null;
+    if (allVariables.userChatInput && allVariables.userChatInput.includes('分析')) {
+      analysisResult = await windService.analyzeAndRecommend(
+        allVariables.userChatInput,
+        formattedData
+      );
+
+      // 发送分析结果
+      if (workflowStreamResponse) {
+        workflowStreamResponse?.({
+          event: SseResponseEventEnum.answer,
+          data: textAdaptGptResponse({
+            text: analysisResult.analysis
+          })
+        });
+      }
+    }
+
     // 发送数据获取成功状态
     if (workflowStreamResponse) {
       workflowStreamResponse?.({
@@ -229,9 +251,12 @@ export const dispatchWindData = async (props: WindDataProps): Promise<WindDataRe
     // 处理额外的输出字段提取
     if (node.outputs) {
       for (const output of node.outputs) {
-        if (output.key && output.key !== NodeOutputKeyEnum.windRawData && 
-            output.key !== NodeOutputKeyEnum.windFormattedData && 
-            output.key !== NodeOutputKeyEnum.windDataSummary) {
+        if (
+          output.key &&
+          output.key !== NodeOutputKeyEnum.windRawData &&
+          output.key !== NodeOutputKeyEnum.windFormattedData &&
+          output.key !== NodeOutputKeyEnum.windDataSummary
+        ) {
           // 这里可以实现从原始数据中提取特定字段的逻辑
           try {
             // 简单的字段提取逻辑
@@ -255,7 +280,6 @@ export const dispatchWindData = async (props: WindDataProps): Promise<WindDataRe
       },
       [DispatchNodeResponseKeyEnum.toolResponses]: outputs
     };
-
   } catch (error) {
     console.error('Wind API 调用失败:', error);
 

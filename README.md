@@ -88,6 +88,7 @@ https://github.com/labring/FastGPT/assets/15308462/7d3a38df-eb0e-4388-9250-2409b
    - [x] 支持语音输入和输出 (可配置语音输入语音回答)
    - [x] 模糊输入提示
    - [x] 模板市场
+   
 
 <a href="#readme">
     <img src="https://img.shields.io/badge/-返回顶部-7d09f1.svg" alt="#" align="right">

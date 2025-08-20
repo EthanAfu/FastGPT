@@ -70,7 +70,24 @@ export class WindAPIService {
       headers: {
         'Content-Type': 'application/json',
         'User-Agent': 'FastGPT-Wind-Client/1.0'
-      }
+      },
+      // 绕过代理访问本地服务
+      proxy: false,
+      // 如果是本地服务，强制绕过系统代理
+      ...(config.apiUrl.includes('127.0.0.1') || config.apiUrl.includes('localhost')
+        ? {
+            httpAgent: new (require('http').Agent)({
+              keepAlive: true,
+              // 禁用代理
+              proxy: false
+            }),
+            httpsAgent: new (require('https').Agent)({
+              keepAlive: true,
+              // 禁用代理
+              proxy: false
+            })
+          }
+        : {})
     });
 
     // 设置请求拦截器
@@ -147,6 +164,7 @@ export class WindAPIService {
       console.log('调用 Wind API 获取数据:', request);
 
       // 构建 Wind API 请求
+      // 注意：请根据您的wind-api-service实际接口格式调整这里的参数
       const apiRequest = {
         codes: request.codes.join(','),
         fields: request.fields.join(','),
@@ -156,6 +174,9 @@ export class WindAPIService {
         dataType: request.dataType
       };
 
+      console.log('发送到Wind API的请求:', apiRequest);
+
+      // 根据您的wind-api-service接口路径调整这里的URL
       const response = await this.client.post('/api/data', apiRequest);
 
       if (response.data.errorCode !== 0) {
